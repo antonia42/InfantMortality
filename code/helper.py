@@ -22,7 +22,7 @@ def split_train_test(filedir, split_threshold=0.2):
     :return: tuple: A tuple containing the train and test features lists, and the train and test labels lists.
 
     """
-    
+
     df = pd.read_csv(filedir, names=HEADER.split(','))
 
     df.loc[df['aged'] >= 0, 'aged'] = -1
