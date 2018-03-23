@@ -21,13 +21,13 @@ def predict_with_XGB(train, test, train_labels, test_labels):
     best_nround_binary = 889
     optimized_params_binary = {'eta': 0.1, 'seed': 0, 'subsample': 0.7, 'learning_rate': 0.01,
                          'n_estimators': 1250, 'colsample_bytree': 0.7, 'objective': obj_binary,
-                         'max_depth': 3, 'min_child_weight': 3}
+                         'max_depth': 3, 'min_child_weight': 3, 'silent': 1}
 
     # Initialize the classifier DMatrix to make XGBoost more efficient
     xgdmat = XGBClassifier.DMatrix(train, train_labels)
 
     # Train the classifier
-    final_gb = XGBClassifier.train(optimized_params_binary, xgdmat, num_boost_round=best_nround_binary)
+    final_gb = XGBClassifier.train(optimized_params_binary, xgdmat, num_boost_round=best_nround_binary, verbose_eval=False)
     testdmat = XGBClassifier.DMatrix(test)
 
     # Make predictions using testdmat
@@ -55,13 +55,13 @@ def predict_with_XGB_multi(train, test, train_labels, test_labels):
     best_nround_multi = 1216
     optimized_params_multi = {'eta': 0.1, 'seed': 0, 'subsample': 0.7, 'learning_rate': 0.01,
                         'n_estimators': 1250, 'colsample_bytree': 0.8, 'objective': obj_multi,
-                        'max_depth': 3, 'min_child_weight': 3, 'num_class': 4}
+                        'max_depth': 3, 'min_child_weight': 3, 'num_class': 4, 'silent': 1}
 
     # Initialize the classifier DMatrix to make XGBoost more efficient
     xgdmat = XGBClassifier.DMatrix(train, train_labels)
 
     # Train the classifier
-    final_gb = XGBClassifier.train(optimized_params_multi, xgdmat, num_boost_round=best_nround_multi)
+    final_gb = XGBClassifier.train(optimized_params_multi, xgdmat, num_boost_round=best_nround_multi, verbose_eval=False)
     testdmat = XGBClassifier.DMatrix(test)
 
     # Make predictions using testdmat
