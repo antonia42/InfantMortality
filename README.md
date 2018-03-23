@@ -18,6 +18,13 @@ This is a sample of the datasets used for our experiments.
 An example on how to run this code is available in code/main.py
 
 
+## Getting Started
+```bash
+> git clone git@github.com:antonia42/InfantMortality.git
+> cd InfantMortality/code/
+> ./main
+```
+
 ## Copyrights
 Note that the code is distributed under MIT License.
 
