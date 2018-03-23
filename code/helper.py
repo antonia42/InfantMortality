@@ -3,6 +3,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, roc
 from sklearn.preprocessing import label_binarize
 
 import pandas as pd
+import numpy as np
 import sys
 
 sys.dont_write_bytecode = True
@@ -42,37 +43,13 @@ def change_minority_class_label_to_zero(df_labels):
 
     :param df_labels: pandas data frame containing the labels.
 
-    :return: pandas data frame: containing the converted valued labels.
+    :return: numpy array: containing the converted valued labels.
 
     """
 
     df_labels.loc[df_labels['aged'] == -1, 'aged'] = 0
 
     return df_labels[['aged']]
-
-
-def split_train_test_multi(filedir, split_threshold=0.2):
-    """
-    Code to split the multilabel dataset into training and testing sets.
-    The labels are: survival class (assigned by 0),
-                    perinatal class (assigned by 1),
-                    neonatal class (assigned by 2),
-                    postneonatal class (assigned by 3).
-
-    :param filedir (string): The filename of the dataset.
-    :param split_threshold (float): The threshold that refers to the testing set.
-
-    :return: tuple: A tuple containing the train and test features lists, and the train and test labels lists.
-
-    """
-
-    df = pd.read_csv(filedir, names=HEADER.split(','))
-
-    df_labels = df[['aged']]
-
-    df = df.drop(['aged'], axis=1)
-
-    return train_test_split(df, df_labels, test_size=split_threshold)
 
 
 def split_train_test_multi_binarize(fileDir, split_threshold=0.2, class_list=[0, 1, 2, 3]):
@@ -100,6 +77,20 @@ def split_train_test_multi_binarize(fileDir, split_threshold=0.2, class_list=[0,
     labels = label_binarize(df_labels, classes=class_list)
 
     return train_test_split(df, labels, test_size=split_threshold)
+
+
+def create_one_col_for_labels(bin_ndarray):
+    """
+    Create one multi-class column instead of four binary columns
+    :param bin_ndarray: The array with four binary columns.
+    :return: The array with one multi class column
+    """
+    multi_list = []
+    for (x,y), value in np.ndenumerate(bin_ndarray):
+        if value == 1:
+            multi_list.append(y)
+
+    return np.array(multi_list)
 
 
 def evaluate(test_labels, preds, n_decimals=2, binary=True):
@@ -151,3 +142,4 @@ def print_evaluation(evaluation_metrics, binary=True):
             evaluation_metrics_minority.append(str(s))
 
     return '\t'.join(evaluation_metrics_minority) + '\t'
+
