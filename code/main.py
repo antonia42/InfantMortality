@@ -3,7 +3,7 @@ import time
 
 from xgb import predict_with_XGB, predict_with_XGB_multi
 from gnb import predict_with_GNB, predict_with_GNB_multi
-from helper import split_train_test, split_train_test_multi, split_train_test_multi_binarize, change_minority_class_label_to_zero, evaluate, print_evaluation
+from helper import split_train_test, split_train_test_multi_binarize, change_minority_class_label_to_zero, create_one_col_for_labels, evaluate, print_evaluation
 from svm import predict_with_one_class_SVM, predict_with_one_class_SVM_multi
 
 sys.dont_write_bytecode = True
@@ -15,18 +15,19 @@ n_decimals = 2
 secs = 60.0
 
 
-def binary_prediction(filedir, model):
+def binary_prediction(train, test, train_labels, test_labels, model):
     """
     Runs and evaluates for the requested model for the binary classification.
 
-    :param filedir (string): The filename of the dataset.
+    :param train (pandas data frame): The training set of the data containing the features.
+    :param test (pandas data frame): The testing set of the data containing the features.
+    :param train_labels (pandas data frame): The training set of the data containing the labels.
+    :param test_labels (pandas data frame): The testing set of the data containing the labels.
     :param model (string): The requested model to run.
 
     :return: string containing the evaluation metrics values.
 
     """
-
-    train, test, train_labels, test_labels = split_train_test(filedir, split_threshold)
 
     t0 = time.time()
 
@@ -67,36 +68,37 @@ def binary_main(filenames, models):
     print 'Method\tAcc\tPrec\tRec\tF\tAUC\tRuntime'
 
     for fn in filenames:
+        train, test, train_labels, test_labels = split_train_test(DATASETDIR + fn, split_threshold)
+
         for model in models:
-            eval_metrics = binary_prediction(DATASETDIR + fn, model)
+            eval_metrics = binary_prediction(train, test, train_labels, test_labels, model)
             print model + '\t' + eval_metrics
 
 
-
-def multi_prediction(filedir, model):
+def multi_prediction(train, test, train_labels, test_labels, model):
     """
     Runs and evaluates for the requested model for the multi label classification.
 
-    :param filedir (string): The filename of the dataset.
+    :param train (pandas data frame): The training set of the data containing the features.
+    :param test (pandas data frame): The testing set of the data containing the features.
+    :param train_labels (pandas data frame): The training set of the data containing the labels.
+    :param test_labels (pandas data frame): The testing set of the data containing the labels.
     :param model (string): The requested model to run.
 
     :return: string containing the evaluation metrics values.
 
     """
 
+    t0 = time.time()
     if model == 'SVM':
-        train, test, train_labels, test_labels = split_train_test_multi_binarize(filedir, split_threshold)
-        t0 = time.time()
         preds = predict_with_one_class_SVM_multi(train, test, train_labels, test_labels)
 
     elif model == 'GNB':
-        train, test, train_labels, test_labels = split_train_test_multi_binarize(filedir, split_threshold)
-        t0 = time.time()
         preds = predict_with_GNB_multi(train, test, train_labels, test_labels)
 
     elif model == 'XGB':
-        train, test, train_labels, test_labels = split_train_test_multi(filedir, split_threshold)
-        t0 = time.time()
+        train_labels = create_one_col_for_labels(train_labels)
+        test_labels = create_one_col_for_labels(test_labels)
         preds = predict_with_XGB_multi(train, test, train_labels, test_labels)
 
     t1 = time.time()
@@ -121,16 +123,17 @@ def multi_main(filenames, models):
 
     """
     print '\t\tMULTI-LABEL CLASSIFICATION'
-    print 'Method\tAcc\tPrec (SURV,PERI,NEO,POST)\tRec (SURV,PERI,NEO,POST)\tF (SURV,PERI,NEO,POST)\tRuntime'
+    print 'Method\tAcc\tPrec (SURV,PERI,NEO,POST)\tRec (SURV,PERI,NEO,POST)\tF (SURV,PERI,NEO,POST)\t\tRuntime'
 
     for fn in filenames:
+        train, test, train_labels, test_labels = split_train_test_multi_binarize(DATASETDIR + fn, split_threshold)
         for model in models:
-            eval_metrics = multi_prediction(DATASETDIR + fn, model)
-            print model + '\t' + eval_metrics
+            eval_metrics = multi_prediction(train, test, train_labels, test_labels, model)
+            print model + '_' + ''.join(fn[:3]) + '\t' + eval_metrics
 
 
 if __name__ == '__main__':
-    models = ['GNB', 'XGB', 'SVM']
+    models = ['GNB', 'SVM', 'XGB']
 
     filenames_binary = ['1_1_mean.csv', '1_5_mean.csv']
     binary_main(filenames_binary, models)
